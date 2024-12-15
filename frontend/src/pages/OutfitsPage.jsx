@@ -17,6 +17,15 @@ const OutfitsPage = () => {
     fetchOutfits();
   }, []);
 
+  const handleDeleteOutfit = async (id) => {
+    try {
+      await axios.delete(`http://localhost:4000/api/outfits/${id}`);
+      setOutfits(outfits.filter(outfit => outfit._id !== id));
+    } catch (error) {
+      console.error("There was an error deleting the outfit", error);
+    }
+  }
+
   return (
     <Container maxW={"container.md"}>
       <VStack spacing={8}>
@@ -36,6 +45,7 @@ const OutfitsPage = () => {
                 <Image src={`http://localhost:4000/uploads/${outfit.bottom.image}`} alt="Bottom" maxH="200px" objectFit="contain" />
                 <Text mt={2}>{outfit.bottom.brand} - {outfit.bottom.color} - {outfit.bottom.size}</Text>
               </Flex>
+              <Button colorScheme='red' onClick={() => handleDeleteOutfit(outfit._id)}>Delete</Button>
             </Flex>
           </Box>
         ))}
