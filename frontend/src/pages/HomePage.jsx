@@ -1,4 +1,4 @@
-import { Box, Button, Container, Heading, HStack, Input, useColorModeValue, VStack, Text } from '@chakra-ui/react';
+import { Flex, Box, Button, Container, Heading, HStack, Input, useColorModeValue, VStack, Text, Image } from '@chakra-ui/react';
 import React, { useEffect, useState } from 'react'
 import axios from 'axios';
 
@@ -11,8 +11,8 @@ const HomePage = () => {
   useEffect(() => {
     const fetchClothingItems = async () => {
       try {
-        const response = await axios.get("http://localhost:4000/api/clothing");
-        const clothingItems = response.data;
+        const response = await axios.get('http://localhost:4000/api/clothingItems');
+        const clothingItems = response.data.data;
         setTops(clothingItems.filter(item => item.type === 'Top'));
         setBottoms(clothingItems.filter(item => item.type === 'Bottom'));
       } catch (error) {
@@ -38,6 +38,19 @@ const HomePage = () => {
     setCurrentBottomIndex((prevIndex) => (prevIndex - 1 + bottoms.length) % bottoms.length);
   };
 
+  const handleSaveOutfit = async () => {
+    const outfit = {
+      top: tops[currentTopIndex]._id,
+      bottom: bottoms[currentBottomIndex]._id,
+    };
+    try {
+      await axios.post("http://localhost:4000/api/outfits", outfit);
+      alert("Outfit saved successfully");
+    } catch (error) {
+      console.error("There was an error saving the outfit", error);
+    }
+  };
+
   return (
     <Container maxW={"container.md"}>
       <VStack spacing={8}>
@@ -46,61 +59,62 @@ const HomePage = () => {
             MyWardrobe
         </Heading>
 
-        <HStack>
-          <Button
-            colorScheme='gray'
-            onClick={handleNextTop}
-            disabled={tops.length === 0}
-          >
-            {"<"}
-          </Button>
+        <Flex direction={"column"} align={"center"} w="full">
+          <HStack>
+            <Button
+              colorScheme='gray'
+              onClick={handlePrevTop}
+              disabled={tops.length === 0}
+            >
+              {"<"}
+            </Button>
 
-          {tops.length > 0 && (
-            <>
-              <Image src={tops[currentTopIndex].image} alt="Current Top" boxSize="100px" />
-              <Text>{tops[currentTopIndex].brand} - {tops[currentTopIndex].color} - {tops[currentTopIndex].size}</Text>
-            </>
-          )}
+            {tops.length > 0 && (
+              <Flex direction={"column"} align={"center"}>
+                <Image src={`http://localhost:4000/uploads/${tops[currentTopIndex].image}`} alt="Current Top" maxH="400px" objectFit="contain" />
+                <Text>{tops[currentTopIndex].brand} - {tops[currentTopIndex].color} - {tops[currentTopIndex].size}</Text>
+              </Flex>
+            )}
 
-          <Button
-            colorScheme='gray'
-            onClick={handleNextTop}
-            disabled={tops.length === 0}
-          >
-            {">"}
-          </Button>
-        </HStack>
+            <Button
+              colorScheme='gray'
+              onClick={handleNextTop}
+              disabled={tops.length === 0}
+            >
+              {">"}
+            </Button>
+          </HStack>
 
-        <HStack>
-          <Button
-            colorScheme='gray'
-            onClick={handlePrevBottom}
-            disabled={bottoms.length === 0}
-          >
-            {"<"}
-          </Button>
+          <HStack>
+            <Button
+              colorScheme='gray'
+              onClick={handlePrevBottom}
+              disabled={bottoms.length === 0}
+            >
+              {"<"}
+            </Button>
 
-          {bottoms.length > 0 && (
-            <>
-              <Image src={tops[currentBottomIndex].image} alt="Current Bottom" boxSize="100px" />
-              <Text>{bottoms[currentBottomIndex].brand} - {bottoms[currentBottomIndex].color} - {bottoms[currentBottomIndex].size}</Text>
-            </>
-          )}
+            {bottoms.length > 0 && (
+              <Flex direction={"column"} align={"center"}>
+                <Image src={`http://localhost:4000/uploads/${bottoms[currentBottomIndex].image}`} alt="Current Bottom" maxH="400px" objectFit="contain" />
+                <Text>{bottoms[currentBottomIndex].brand} - {bottoms[currentBottomIndex].color} - {bottoms[currentBottomIndex].size}</Text>
+              </Flex>
+            )}
 
-          <Button
-            colorScheme='gray'
-            onClick={handleNextBottom}
-            disabled={bottoms.length === 0}
-          >
-            {">"}
-          </Button>
-        </HStack>
+            <Button
+              colorScheme='gray'
+              onClick={handleNextBottom}
+              disabled={bottoms.length === 0}
+            >
+              {">"}
+            </Button>
+          </HStack>
+        </Flex>
 
         <Button
           colorScheme='blue'
-
+          onClick={handleSaveOutfit}
         >
-            {/* onClick= [TODO: save outfit]  */}
             Save Outfit
         </Button>
 

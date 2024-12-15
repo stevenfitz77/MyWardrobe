@@ -1,5 +1,6 @@
-import { Box, Button, Container, Heading, HStack, Input, useColorModeValue, VStack, Text } from '@chakra-ui/react';
-import { useState } from 'react';
+import { Box, Button, Container, Heading, HStack, Input, useColorModeValue, VStack, Text, Image } from '@chakra-ui/react';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const ClothingPage = () => {
 
@@ -9,20 +10,75 @@ const ClothingPage = () => {
         brand: "",
         color: "",
         size: "",
+        image: "",
+        type: "Top"
     });
 
     const [tops, setTops] = useState([]);
     const [bottoms, setBottoms] = useState([]);
 
-    const handleAddClothingItem = () => {
-        console.log(newClothingItem);
-        if (itemType === "Top") {
-            setTops([...tops, newClothingItem]);
-        } else {
-            setBottoms([...bottoms, newClothingItem]);
+
+    useEffect(() => {
+        const fetchClothingItems = async () => {
+            try {
+                const response = await axios.get('http://localhost:4000/api/clothingItems');
+                const clothingItems = response.data.data;
+                setTops(clothingItems.filter(item => item.type === "Top"));
+                setBottoms(clothingItems.filter(item => item.type === "Bottom"));
+            } catch (error) {
+                console.error("There was an error fetching the clothing items: ", error);
+            }
+        };
+
+        fetchClothingItems();
+    }, []);
+
+
+    const handleAddClothingItem = async () => {
+
+        const formData = new FormData();
+        formData.append("brand", newClothingItem.brand);
+        formData.append("color", newClothingItem.color);
+        formData.append("size", newClothingItem.size);
+        formData.append("image", newClothingItem.image);
+        formData.append("type", itemType);
+
+        try {
+            const response = await axios.post('http://localhost:4000/api/clothingItems', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            const savedItem = response.data.data;
+            if (itemType === "Top") {
+                setTops([...tops, savedItem]);
+            } else {
+                setBottoms([...bottoms, savedItem]);
+            }
+            setNewClothingItem({ brand: "", color: "", size: "", image: "", type: itemType }); //clear
+        } catch (error) {
+            console.error("There was an error saving the clothing item: ", error);
         }
-        setNewClothingItem({ brand: "", color: "", size: "", image: "" }); //clear input
     };
+
+    const handleImageChange = (e) => {
+        setNewClothingItem({ ...newClothingItem, image: e.target.files[0] });
+    };
+
+    const handleDeleteClothingItem = async (id) => {
+        try {
+            await axios.delete(`http://localhost:4000/api/clothingItems/${id}`);
+            if (itemType === "Top") {
+                setTops(tops.filter(item => item._id !== id));
+            } else {
+                setBottoms(bottoms.filter(item => item._id !== id));
+            }
+        } catch (error) {
+            console.error("There was an error deleting the clothing item: ", error);
+        }
+    };
+
+
 
     const renderClothingItems = () => {
         const items = itemType === "Top" ? tops : bottoms;
@@ -31,7 +87,8 @@ const ClothingPage = () => {
                 <Text>Brand: {item.brand}</Text>
                 <Text>Color: {item.color}</Text>
                 <Text>Size: {item.size}</Text>
-                {/* display image */}
+                <Image src={`http://localhost:4000/uploads/${item.image}`} alt="Clothing Item" boxSize="100px" objectFit="contain" />
+                <Button colorScheme='red' onClick={() => handleDeleteClothingItem(item._id)}>Delete</Button>
             </Box>
         ));
     };
@@ -86,10 +143,9 @@ const ClothingPage = () => {
                     />
 
                     <Input
-                      placeholder="Image"
-                      name="image"
-                      value={newClothingItem.image}
-                      onChange={(e) => setNewClothingItem({ ...newClothingItem, image: e.target.value})}
+                        type="file"
+                        name="image"
+                        onChange={handleImageChange}
                     />
 
                     <Button colorScheme='blue' onClick={handleAddClothingItem} w='full'>
@@ -109,7 +165,7 @@ const ClothingPage = () => {
             </Box>
         </VStack>
     </Container>
-  )
+  );
 };
 
 export default ClothingPage

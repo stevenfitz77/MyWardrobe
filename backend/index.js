@@ -4,20 +4,25 @@ import clothingItemRoutes from "./routes/clothingItemRoute.js";
 import cors from 'cors';
 import mongoose from 'mongoose';
 import path from 'path';
+import outfitRoutes from './routes/outfitRoute.js';
+
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+
 // Middleware
 app.use(express.json()); // allows us to accept JSON data in the req.body
 app.use(cors());
+app.use('/uploads', express.static('uploads'));
 
 // Routes
-app.use("/api/clothingItems", clothingItemRoutes);
+app.use('/api/clothingItems', clothingItemRoutes);
+app.use('/api/outfits', outfitRoutes);
 
-app.get("/", (req, res) => {
+app.get('/', (req, res) => {
     res.send("MyWardrobe API is running...");
 });
 

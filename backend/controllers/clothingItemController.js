@@ -12,13 +12,14 @@ export const getClothingItems = async (req, res) => {
 };
 
 export const createClothingItem = async (req, res) => {
-    const clothingItem = req.body; // user sends this data
+    const { brand, color, size, type } = req.body; // user sends this data
+    const image = req.file.filename;
 
-    if (!clothingItem.brand || !clothingItem.color || !clothingItem.image) {
+    if (!brand || !color || !size || !image) {
         return res.status(400).json({ success:false, message: "Please provide all required fields" });
     }
 
-    const newClothingItem = new ClothingItem(clothingItem);
+    const newClothingItem = new ClothingItem({ brand, color, size, image, type });
 
     try {
         await newClothingItem.save();
